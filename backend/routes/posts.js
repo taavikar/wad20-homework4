@@ -43,12 +43,17 @@ router.post('/', authorize,  (request, response) => {
 router.put('/:postId/likes', authorize, (request, response) => {
 
     // Endpoint for current user to like a post
+    PostModel.like(request.currentUser.id, request.params.postId, (postIds) => {
+        response.status(201).json()
+    });
 });
 
 router.delete('/:postId/likes', authorize, (request, response) => {
 
     // Endpoint for current user to unlike a post
-
+    PostModel.unlike(request.currentUser.id, request.params.postId, (postIds) => {
+        response.status(201).json()
+    });
 });
 
 module.exports = router;
