@@ -2,6 +2,8 @@ import {mount, createLocalVue} from '@vue/test-utils'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
 import Posts from "../../src/components/Posts.vue";
+import axios from "axios";
+import moment from "moment";
 
 const localVue = createLocalVue();
 
@@ -89,18 +91,53 @@ const testData = [
     }
 ];
 
+// jest mocks get hoisted to the top of the file, so testData does not exist yet.
+// If you have to use a variable within that mock, you have to prefix it with 'mock'.
+// Now mockTestData (and therefore testData) is initialized first
+const mockTestData = testData
+
 //Mock axios.get method that our Component calls in mounted event
 jest.mock("axios", () => ({
     get: () => Promise.resolve({
-        data: testData
+        data: mockTestData
     })
 }));
 
 describe('Posts', () => {
-
+    
     const wrapper = mount(Posts, {router, store, localVue});
 
-    it('1 == 1', function () {
-        expect(true).toBe(true)
+    it('Correct number of posts is rendered', function () {
+        const expected = testData.length
+        const actual = wrapper.findAll('.post').length
+        expect(actual).toEqual(expected)
+    });
+    
+    it('Proper media type is rendered, if exists at all', function () {
+        
+        // Verify that correct number of posts with images are rendered
+        const imagePostsRendered = wrapper.findAll('.post .post-image img')
+        const postImgsInTestData = testData.filter(post => post.media !== null && post.media.type === 'image')
+        expect(imagePostsRendered.length).toEqual(postImgsInTestData.length);
+    
+        // Verify that correct number of posts with videos are rendered
+        const videoPostsRendered = wrapper.findAll('.post .post-image video')
+        const postVideosInTestData = testData.filter(post => post.media !== null && post.media.type === 'video')
+        expect(videoPostsRendered.length).toEqual(postVideosInTestData.length);
+        
+        // Verify that all the other posts don't have media
+        const renderedPosts = wrapper.findAll('.post')
+        const nullMediaRendered = renderedPosts.length - imagePostsRendered.length - videoPostsRendered.length
+        const nullMediaInTestData = testData.filter(post => post.media === null).length
+        expect(nullMediaRendered).toEqual(nullMediaInTestData);
+    });
+    
+    it('Post create time is displayed in correct format', function () {
+        // check that each test post's create time is rendered in correct format
+        for (let i = 0; i < testData.length; i++) {
+            const post = testData[i]
+            const expectedDateString = moment(post.createTime).format('LLLL')
+            expect(wrapper.html()).toContain(expectedDateString)
+        }
     });
 });

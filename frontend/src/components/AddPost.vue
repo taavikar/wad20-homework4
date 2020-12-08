@@ -14,7 +14,6 @@
                     <option value="image">Image</option>
                     <option value="video">Video</option>
                 </select>
-
             </div>
             <div>
                 <button class="cancel-button" @click="cancel">Cancel</button>
@@ -53,9 +52,9 @@
             cancel: function () {
                 this.post = {
                     text: null,
-                        media: {
+                    media: {
                         url: null,
-                            type: null,
+                        type: null,
                     }
                 };
                 this.formOpen = false;
